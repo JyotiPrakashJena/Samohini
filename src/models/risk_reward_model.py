@@ -6,6 +6,7 @@ class request_risk_reward_module(BaseModel):
     """
     Request Object contained for the risk_reward Module
     """
+
     buy_price: float
     sell_price: float
     stop_loss: float
@@ -16,6 +17,7 @@ class response_risk_reward_module(BaseModel):
     """
     Response Object contained for the risk_reward Module
     """
+
     buy_price: float
     sell_price: float
     stop_loss: float
