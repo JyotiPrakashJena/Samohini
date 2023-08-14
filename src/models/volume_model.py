@@ -1,10 +1,14 @@
 from pydantic import BaseModel, Field
 from typing import Optional
 
-class stock_levels(BaseModel):
-    """Object for maintaining Stock levels along with the ratio."""
-    ratio: float
-    level: float
+
+class volume_indicators(BaseModel):
+    """
+    Object with details of the Volume indicators.
+    """
+    volume_now: float
+    avg_volume: float
+    vol_indicator_check: bool
 
 
 class current_market_price(BaseModel):
@@ -15,9 +19,9 @@ class current_market_price(BaseModel):
     high: float
 
 
-class request_fibo_module(BaseModel):
+class request_volume_module(BaseModel):
     """
-    Request Object contained for the Fibo Module
+    Request Object contained for the volume Module
     """
     stock_id: str
     stock_name: Optional[str]
@@ -26,13 +30,13 @@ class request_fibo_module(BaseModel):
     market: str = Field(default="NSE")
 
 
-class response_fibo_module(BaseModel):
+class response_volume_module(BaseModel):
     """
-    Response Object contained for the Fibo Module
+    Response Object contained for the volume Module
     """
     stock_id: str
     stock_name: Optional[str]
     time_period: str
     market: str = Field(default="NSE")
-    levels: list[stock_levels]
+    volume_indicators: volume_indicators
     cur_market_price: current_market_price

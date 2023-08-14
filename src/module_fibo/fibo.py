@@ -1,9 +1,11 @@
 from models.fibo_model import(
+    current_market_price,
     request_fibo_module,
     response_fibo_module,
     stock_levels
 )
 from module_stock.stock import StockDetails
+from utils.extras import format_float
 import pandas as pd
 
 class FiboModules:
@@ -15,15 +17,20 @@ class FiboModules:
         request (request_fibo_module): Object containing required inputs for fibo levels
         response_fibo_module: Object containing response along with fibo levels
         """
-        stock_data = StockDetails().get_stock_data(stock_id=request.stock_id,
+        self.stock_data = StockDetails().get_stock_data(stock_id=request.stock_id,
                                                  period=request.period,
                                                  time_frame=request.time_frame)
-        stock_levels = self.fibo_indicator(stock_data)
+        stock_levels = self.fibo_indicator(self.stock_data)
+        cur_market_price = current_market_price(open=format_float(self.stock_data['open'][-1]),
+                                                price_now=format_float(self.stock_data['close'][-1]),
+                                                low=format_float(self.stock_data['low'][-1]),
+                                                high=format_float(self.stock_data['high'][-1]))
         return response_fibo_module(stock_id=request.stock_id,
                                     stock_name=request.stock_name,
                                     time_period = f'{request.period}{request.time_frame}',
                                     market=request.market,
-                                    levels=stock_levels)
+                                    levels=stock_levels,
+                                    cur_market_price=cur_market_price)
 
 
     def fibo_indicator(self, data:pd.DataFrame) -> list:
@@ -49,10 +56,10 @@ class FiboModules:
         for ratio in ratios:
             if highest_swing > lowest_swing:  # Uptrend
                 stock_level = stock_levels(ratio=ratio,
-                                           level=float("{:.2f}".format(max_level - (max_level - min_level) * ratio)))
+                                           level=format_float(max_level - (max_level - min_level) * ratio))
                 fibo_levels.append(stock_level)
             else:  # Downtrend
                 stock_level = stock_levels(ratio=ratio,
-                                           level=float("{:.2f}".format(min_level + (max_level - min_level) * ratio)))
+                                           level=format_float(min_level + (max_level - min_level) * ratio))
                 fibo_levels.append(stock_level)
         return fibo_levels

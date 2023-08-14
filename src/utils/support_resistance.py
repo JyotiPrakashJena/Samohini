@@ -1,5 +1,7 @@
 import numpy as np
 
+from utils.extras import format_float
+
 
 class SupportResistance:
     """With methods to help in detecting Support Resistance."""
@@ -30,9 +32,9 @@ class SupportResistance:
             if self.is_support(data, i):
                 l = data['low'][i]
                 if self.is_far_from_level(l, s, levels):
-                    levels.append(float("{:.2f}".format(l)))
+                    levels.append(format_float(l))
             elif self.is_resistance(data, i):
                 l = data['high'][i]
                 if self.is_far_from_level(l, s, levels):
-                    levels.append(float("{:.2f}".format(l)))
+                    levels.append(format_float(l))
         return sorted(levels)

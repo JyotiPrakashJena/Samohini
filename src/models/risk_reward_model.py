@@ -11,6 +11,7 @@ class request_risk_reward_module(BaseModel):
     stop_loss: float
     rr_ratio: float
 
+
 class response_risk_reward_module(BaseModel):
     """
     Response Object contained for the risk_reward Module

@@ -3,8 +3,10 @@ from utils.candlestick import (
     average_body,
     stock_ratio
 )
+from utils.extras import format_float
 from models.candlestick_model import (
     bull_candles,
+    current_market_price,
     request_candle_module,
     response_candle_module
 )
@@ -60,7 +62,8 @@ class BullCandleStick:
         """Helper function to detect Bullish Morning Star Pattern."""
         data = cs.piercing_pattern(self.stock_data, target='result')
         return data['result'][-1]
-    
+
+
     def get_bullish_candles(self) -> bool:
         """Helper function to extract bullish candles."""
         candle_response = bull_candles(bull_engulf=self.bull_engulf(),
@@ -71,14 +74,20 @@ class BullCandleStick:
                                        bull_morning_star=self.bull_morning_star(),
                                        bull_piercing_pattern=self.bull_piercing_pattern())
         return candle_response
-    
+
+
     def get_candle_bull_response(self, request: request_candle_module):
         """Helper function handles response of Bullish candlestick."""
         self.stock_data = StockDetails().get_stock_data(stock_id=request.stock_id,
                                                         period=request.period,
                                                         time_frame=request.time_frame)
+        cur_market_price = current_market_price(open=format_float(self.stock_data['open'][-1]),
+                                                price_now=format_float(self.stock_data['close'][-1]),
+                                                low=format_float(self.stock_data['low'][-1]),
+                                                high=format_float(self.stock_data['high'][-1]))
         candle_bull_response = response_candle_module(stock_id=request.stock_id,
                                                     stock_name=request.stock_name,
                                                     time_period=f'{request.period}{request.time_frame}',
-                                                    bullish_candles=self.get_bullish_candles())
+                                                    bullish_candles=self.get_bullish_candles(),
+                                                    cur_market_price=cur_market_price)
         return candle_bull_response

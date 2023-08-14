@@ -1,12 +1,13 @@
 from models.risk_reward_model import (request_risk_reward_module,
                                       response_risk_reward_module)
+from utils.extras import format_float
 
 
 def validate_risk_reward(request: request_risk_reward_module) -> response_risk_reward_module:
     """Validate Risk Reward Provided the Ratio."""
     expected_profit = request.sell_price - request.buy_price
     expected_loss = request.buy_price - request.stop_loss
-    expected_risk_reward=float("{:.2f}".format(expected_profit/expected_loss))
+    expected_risk_reward=format_float(expected_profit/expected_loss)
     return response_risk_reward_module(buy_price=request.buy_price,
                                        sell_price=request.sell_price,
                                        rr_ratio=request.rr_ratio,

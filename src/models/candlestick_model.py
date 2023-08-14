@@ -14,6 +14,14 @@ class bull_candles(BaseModel):
     bull_piercing_pattern: bool
 
 
+class current_market_price(BaseModel):
+    """Object to hold the current market price."""
+    open: float
+    price_now: float
+    low: float
+    high: float
+
+
 class request_candle_module(BaseModel):
     """
     Request Object contained for the candle Module
@@ -34,3 +42,4 @@ class response_candle_module(BaseModel):
     time_period: str
     market: str = Field(default="NSE")
     bullish_candles: bull_candles
+    cur_market_price: current_market_price

@@ -3,6 +3,7 @@ from module_fibo.fibo import FiboModules
 from module_candlestick.bull_candlestick import BullCandleStick
 from module_indicators.indicators import BullIndicators
 from module_sr.support_resistance import SupportResistanceIndicator
+from module_volume.bull_volume import VolumeIndicator
 from models.candlestick_model import(
     request_candle_module,
     response_candle_module)
@@ -19,6 +20,10 @@ from models.risk_reward_model import (
 from models.support_resistance_model import (
     request_SR_module,
     response_SR_module
+)
+from models.volume_model import (
+    request_volume_module,
+    response_volume_module
 )
 from utils.risk_reward import validate_risk_reward
 
@@ -92,10 +97,21 @@ async def get_support_resistance_levels(stock_id:str, stock_name:str='', period:
 
 
 @app.get("/validate_risk_reward", tags=["StockScreeners"])
-async def risk_reward(buy_price: float, sell_price: float, stop_loss:float, rr_ratio:float) -> response_risk_reward_module:
+async def validate_risk_reward(buy_price: float, sell_price: float, stop_loss:float, rr_ratio:float) -> response_risk_reward_module:
     """Method to extract the support resistance levels of a given stock."""
     request = request_risk_reward_module(buy_price=buy_price,
                                          sell_price=sell_price,
                                          rr_ratio=rr_ratio,
                                          stop_loss=stop_loss)
     return validate_risk_reward(request)
+
+
+@app.get("/validate_volume", tags=["StockScreeners"])
+async def validate_volume_indicator(stock_id:str, stock_name:str='', period:int = 1, time_frame:str='y') -> response_volume_module:
+    """Method to extract the support resistance levels of a given stock."""
+    request = request_volume_module(stock_id=stock_id,
+                                    stock_name=stock_name,
+                                    period=period,
+                                    time_frame=time_frame)
+    volume_indicator_response = VolumeIndicator().volume_indicator_response(request)
+    return volume_indicator_response

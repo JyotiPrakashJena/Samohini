@@ -11,6 +11,14 @@ class bull_indicators(BaseModel):
     rsi: bool
 
 
+class current_market_price(BaseModel):
+    """Object to hold the current market price."""
+    open: float
+    price_now: float
+    low: float
+    high: float
+
+
 class request_indicator_module(BaseModel):
     """
     Request Object contained for the indicator Module
@@ -31,3 +39,4 @@ class response_indicator_module(BaseModel):
     time_period: str
     market: str = Field(default="NSE")
     bull_indicators: bull_indicators
+    cur_market_price: current_market_price

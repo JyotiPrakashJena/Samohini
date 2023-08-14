@@ -1,9 +1,11 @@
 from models.indicators_model import (
     bull_indicators,
+    current_market_price,
     request_indicator_module,
     response_indicator_module
 )
 from module_stock.stock import StockDetails
+from utils.extras import format_float
 
 class BullIndicators:
     """Class with functionality for detection of Bullish Pattern."""
@@ -67,8 +69,13 @@ class BullIndicators:
         self.stock_data = StockDetails().get_stock_data(stock_id=request.stock_id,
                                                         period=request.period,
                                                         time_frame=request.time_frame)
+        cur_market_price = current_market_price(open=format_float(self.stock_data['open'][-1]),
+                                                price_now=format_float(self.stock_data['close'][-1]),
+                                                low=format_float(self.stock_data['low'][-1]),
+                                                high=format_float(self.stock_data['high'][-1]))
         indicator_response = response_indicator_module(stock_id=request.stock_id,
                                                          stock_name=request.stock_name,
                                                          time_period=f'{request.period}{request.time_frame}',
-                                                         bull_indicators=self.get_bullish_indicators())
+                                                         bull_indicators=self.get_bullish_indicators(),
+                                                         cur_market_price=cur_market_price)
         return indicator_response

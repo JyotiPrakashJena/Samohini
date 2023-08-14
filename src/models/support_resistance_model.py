@@ -18,6 +18,15 @@ class request_SR_module(BaseModel):
     market: str = Field(default="NSE")
 
 
+
+class current_market_price(BaseModel):
+    """Object to hold the current market price."""
+    open: float
+    price_now: float
+    low: float
+    high: float
+
+
 class response_SR_module(BaseModel):
     """
     Response Object contained for the SR Module
@@ -27,3 +36,4 @@ class response_SR_module(BaseModel):
     time_period: str
     market: str = Field(default="NSE")
     levels: list[float]
+    cur_market_price: current_market_price

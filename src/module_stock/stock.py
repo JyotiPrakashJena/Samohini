@@ -12,7 +12,7 @@ class StockDetails:
         """
 
         stock_data = yf.Ticker(str(stock_id) + '.NS').history(period=f'{period}{time_frame}').tz_localize(None)
-        stock_data.columns = ['open', 'high', 'low', 'close', 'Volume', 'Dividends', 'Stock Splits']
+        stock_data.columns = ['open', 'high', 'low', 'close', 'volume', 'dividends', 'Stock Splits']
 
         return stock_data
     
