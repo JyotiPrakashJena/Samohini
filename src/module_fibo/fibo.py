@@ -18,11 +18,14 @@ class FiboModules:
         request (request_fibo_module): Object containing required inputs for fibo levels
         response_fibo_module: Object containing response along with fibo levels
         """
-        self.stock_data = StockDetails().get_stock_data(
-            stock_id=request.stock_id,
-            period=request.period,
-            time_frame=request.time_frame,
-        )
+        if request.stock_data.empty:
+            self.stock_data = StockDetails().get_stock_data(
+                stock_id=request.stock_id,
+                period=request.period,
+                time_frame=request.time_frame,
+            )
+        else:
+            self.stock_data = request.stock_data
         stock_levels = self.fibo_indicator(self.stock_data)
         cur_market_price = current_market_price(
             open=format_float(self.stock_data["open"][-1]),

@@ -15,11 +15,15 @@ class SupportResistanceIndicator:
         self, request: request_SR_module
     ) -> response_SR_module:
         """Helper method to find the support resistance levels."""
-        self.stock_data = StockDetails().get_stock_data(
-            stock_id=request.stock_id,
-            period=request.period,
-            time_frame=request.time_frame,
-        )
+        if request.stock_data.empty:
+            self.stock_data = StockDetails().get_stock_data(
+                stock_id=request.stock_id,
+                period=request.period,
+                time_frame=request.time_frame,
+            )
+        else:
+            self.stock_data = request.stock_data
+
         sr_levels = SupportResistance().sr_levels(self.stock_data)
         cur_market_price = current_market_price(
             open=format_float(self.stock_data["open"][-1]),

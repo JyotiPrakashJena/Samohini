@@ -31,11 +31,15 @@ class VolumeIndicator:
         self, request: request_volume_module
     ) -> response_volume_module:
         """Helper function to handle Volume Indicator."""
-        self.stock_data = StockDetails().get_stock_data(
-            stock_id=request.stock_id,
-            period=request.period,
-            time_frame=request.time_frame,
-        )
+        if request.stock_data.empty:
+            self.stock_data = StockDetails().get_stock_data(
+                stock_id=request.stock_id,
+                period=request.period,
+                time_frame=request.time_frame,
+            )
+        else:
+            self.stock_data = request.stock_data
+
         cur_market_price = current_market_price(
             open=format_float(self.stock_data["open"][-1]),
             price_now=format_float(self.stock_data["close"][-1]),

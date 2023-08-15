@@ -1,5 +1,6 @@
 from pydantic import BaseModel, Field
-from typing import Optional
+from typing import Optional, Any
+from pandas import DataFrame
 
 
 class bull_indicators(BaseModel):
@@ -32,6 +33,7 @@ class request_indicator_module(BaseModel):
     period: int = Field(default=1)
     time_frame: str = Field(default="y")
     market: str = Field(default="NSE")
+    stock_data: Any = DataFrame()
 
 
 class response_indicator_module(BaseModel):

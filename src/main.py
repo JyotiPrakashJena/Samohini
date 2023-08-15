@@ -4,6 +4,7 @@ from module_candlestick.bull_candlestick import BullCandleStick
 from module_indicators.indicators import BullIndicators
 from module_sr.support_resistance import SupportResistanceIndicator
 from module_volume.bull_volume import VolumeIndicator
+from automated_scripts.stock_screener import StockScreener
 from models.candlestick_model import request_candle_module, response_candle_module
 from models.fibo_model import request_fibo_module, response_fibo_module
 from models.indicators_model import request_indicator_module, response_indicator_module
@@ -13,7 +14,10 @@ from models.risk_reward_model import (
 )
 from models.support_resistance_model import request_SR_module, response_SR_module
 from models.volume_model import request_volume_module, response_volume_module
+from models.stock_screener_model import request_all_screener_details, response_all_screener_details
 from utils.risk_reward import validate_risk_reward
+
+import pandas as pd
 
 tags_metadata = [
     {
@@ -40,7 +44,7 @@ def samhonini():
 
 
 @app.get("/get_fibo_levels", tags=["StockScreeners"])
-async def get_fibo_levels(
+def get_fibo_levels(
     stock_id: str, stock_name: str = "", period: int = 1, time_frame: str = "y"
 ) -> response_fibo_module:
     """
@@ -56,7 +60,7 @@ async def get_fibo_levels(
 
 
 @app.get("/get_bullish_candles", tags=["StockScreeners"])
-async def get_bullish_candles(
+def get_bullish_candles(
     stock_id: str, stock_name: str = "", period: int = 1, time_frame: str = "y"
 ) -> response_candle_module:
     """Method to validate the bullish candlestick of a given stock."""
@@ -68,7 +72,7 @@ async def get_bullish_candles(
 
 
 @app.get("/get_bullish_indicators", tags=["StockScreeners"])
-async def get_bullish_indicators(
+def get_bullish_indicators(
     stock_id: str, stock_name: str = "", period: int = 1, time_frame: str = "y"
 ) -> response_indicator_module:
     """Method to validate the bullish indicators of a given stock."""
@@ -80,7 +84,7 @@ async def get_bullish_indicators(
 
 
 @app.get("/get_support_resistance_levels", tags=["StockScreeners"])
-async def get_support_resistance_levels(
+def get_support_resistance_levels(
     stock_id: str, stock_name: str = "", period: int = 1, time_frame: str = "y"
 ) -> response_SR_module:
     """Method to extract the support resistance levels of a given stock."""
@@ -94,7 +98,7 @@ async def get_support_resistance_levels(
 
 
 @app.get("/validate_risk_reward", tags=["StockScreeners"])
-async def validate_risk_reward(
+def validate_risk_reward(
     buy_price: float, sell_price: float, stop_loss: float, rr_ratio: float
 ) -> response_risk_reward_module:
     """Method to extract the support resistance levels of a given stock."""
@@ -108,7 +112,7 @@ async def validate_risk_reward(
 
 
 @app.get("/validate_volume", tags=["StockScreeners"])
-async def validate_volume_indicator(
+def validate_volume_indicator(
     stock_id: str, stock_name: str = "", period: int = 1, time_frame: str = "y"
 ) -> response_volume_module:
     """Method to extract the support resistance levels of a given stock."""
@@ -117,3 +121,28 @@ async def validate_volume_indicator(
     )
     volume_indicator_response = VolumeIndicator().volume_indicator_response(request)
     return volume_indicator_response
+
+#get_all_screener_details
+@app.get("/get_all_screener_details", tags=["StockScreeners"])
+def get_all_screener_details(
+    stock_id: str, stock_name: str = "", period: int = 1, time_frame: str = "y"
+) -> response_all_screener_details:
+    """Method to extract all screener details of a given stock."""
+    request = request_all_screener_details(
+        stock_id=stock_id, stock_name=stock_name, period=period, time_frame=time_frame
+    )
+    get_all_screener_details_response = StockScreener().get_all_screener_details(request)
+    return get_all_screener_details_response
+
+
+@app.get("/get_recommended_stocks", tags=["StockScreeners"])
+def get_all_recommended_stocks():
+    try:
+        response = StockScreener().recommended_stocks()
+        data_frame = pd.DataFrame([res.__dict__ for res in response])
+        data_frame.to_csv('Stock_Screener.csv')
+
+        return response
+    except Exception as e:
+        print(e)
+    

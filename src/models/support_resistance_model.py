@@ -1,5 +1,6 @@
 from pydantic import BaseModel, Field
-from typing import Optional
+from typing import Optional, Any
+from pandas import DataFrame
 
 
 # class sr_levels(BaseModel):
@@ -17,6 +18,7 @@ class request_SR_module(BaseModel):
     period: int = Field(default=1)
     time_frame: str = Field(default="y")
     market: str = Field(default="NSE")
+    stock_data: Any = DataFrame()
 
 
 class current_market_price(BaseModel):
