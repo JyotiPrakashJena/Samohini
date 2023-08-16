@@ -76,7 +76,9 @@ class BullCandleStick:
         )
         return candle_response
 
-    def get_candle_bull_response(self, request: request_candle_module) -> response_candle_module:
+    def get_candle_bull_response(
+        self, request: request_candle_module
+    ) -> response_candle_module:
         """Helper function handles response of Bullish candlestick."""
         if request.stock_data.empty:
             self.stock_data = StockDetails().get_stock_data(

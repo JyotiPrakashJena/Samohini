@@ -1,13 +1,14 @@
 from pydantic import BaseModel, Field
 from typing import Optional, Any
 
-from models.candlestick_model import (response_candle_module)
-from models.indicators_model import (response_indicator_module)
-from models.support_resistance_model import (response_SR_module)
-from models.fibo_model import (response_fibo_module)
-from models.volume_model import (response_volume_module)
+from models.candlestick_model import response_candle_module
+from models.indicators_model import response_indicator_module
+from models.support_resistance_model import response_SR_module
+from models.fibo_model import response_fibo_module
+from models.volume_model import response_volume_module
 
 import pandas as pd
+
 
 class request_all_screener_details(BaseModel):
     """
@@ -26,6 +27,7 @@ class response_all_screener_details(BaseModel):
     """
     Response Object contained for the response_all_screener_details
     """
+
     stock_id: str
     stock_name: Optional[str]
     time_period: str

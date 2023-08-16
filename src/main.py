@@ -1,4 +1,6 @@
 from fastapi import FastAPI
+from fastapi_pagination import Page, add_pagination, paginate
+
 from module_fibo.fibo import FiboModules
 from module_candlestick.bull_candlestick import BullCandleStick
 from module_indicators.indicators import BullIndicators
@@ -14,7 +16,10 @@ from models.risk_reward_model import (
 )
 from models.support_resistance_model import request_SR_module, response_SR_module
 from models.volume_model import request_volume_module, response_volume_module
-from models.stock_screener_model import request_all_screener_details, response_all_screener_details
+from models.stock_screener_model import (
+    request_all_screener_details,
+    response_all_screener_details,
+)
 from utils.risk_reward import validate_risk_reward
 
 import pandas as pd
@@ -122,7 +127,8 @@ def validate_volume_indicator(
     volume_indicator_response = VolumeIndicator().volume_indicator_response(request)
     return volume_indicator_response
 
-#get_all_screener_details
+
+# get_all_screener_details
 @app.get("/get_all_screener_details", tags=["StockScreeners"])
 def get_all_screener_details(
     stock_id: str, stock_name: str = "", period: int = 1, time_frame: str = "y"
@@ -131,18 +137,16 @@ def get_all_screener_details(
     request = request_all_screener_details(
         stock_id=stock_id, stock_name=stock_name, period=period, time_frame=time_frame
     )
-    get_all_screener_details_response = StockScreener().get_all_screener_details(request)
+    get_all_screener_details_response = StockScreener().get_all_screener_details(
+        request
+    )
     return get_all_screener_details_response
 
 
 @app.get("/get_recommended_stocks", tags=["StockScreeners"])
-def get_all_recommended_stocks():
+def get_all_recommended_stocks() -> object:
     try:
         response = StockScreener().recommended_stocks()
-        data_frame = pd.DataFrame([res.__dict__ for res in response])
-        data_frame.to_csv('Stock_Screener.csv')
-
         return response
     except Exception as e:
         print(e)
-    
