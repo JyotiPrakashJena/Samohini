@@ -150,3 +150,12 @@ def get_all_recommended_stocks() -> object:
         return response
     except Exception as e:
         print(e)
+
+
+@app.get("/get_buy_calls", tags=["StockScreeners"])
+def get_bullish_buy_calls() -> object:
+    try:
+        response = StockScreener().get_buy_calls()
+        return response
+    except Exception as e:
+        print(e)

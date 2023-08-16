@@ -41,3 +41,12 @@ class response_SR_module(BaseModel):
     market: str = Field(default="NSE")
     levels: list[float]
     cur_market_price: current_market_price
+
+
+class response_stock_sr(BaseModel):
+    """Response Object containing details of stock like stoploss & target."""
+
+    price_now: float
+    stop_loss: float = Field(default=0)
+    target: float = Field(default=0)
+    sr_indicator: bool

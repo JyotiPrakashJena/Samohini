@@ -43,3 +43,12 @@ class response_fibo_module(BaseModel):
     market: str = Field(default="NSE")
     levels: list[stock_levels]
     cur_market_price: current_market_price
+
+
+class response_stock_fibo(BaseModel):
+    """Response Object containing details of stock like stoploss & target."""
+
+    price_now: float
+    stop_loss: float = Field(default=0)
+    target: float = Field(default=0)
+    fibo_indicator: bool
