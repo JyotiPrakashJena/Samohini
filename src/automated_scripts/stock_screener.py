@@ -374,7 +374,7 @@ class StockScreener:
         start_time = time.time()
         with concurrent.futures.ProcessPoolExecutor() as executor:
             futures = []
-            for index, row in stock_list[:500].iterrows():
+            for index, row in stock_list.iterrows():
                 request_screener = request_all_screener_details(
                     stock_id=row["Symbol"], stock_name=row["Name"]
                 )
