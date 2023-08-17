@@ -328,7 +328,7 @@ class StockScreener:
                 # Convert table data to JSON
                 # json_data = json.dumps(table_data, indent=4)
                 # print(buy_call_response)
-                broadcast_msg(table_string)
+                #broadcast_msg(table_string)
 
                 return buy_call_response
             """
