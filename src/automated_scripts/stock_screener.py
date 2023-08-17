@@ -1,5 +1,7 @@
 import concurrent.futures
 import time
+import json
+from prettytable import PrettyTable
 
 from module_stock.stock import StockDetails
 from module_candlestick.bull_candlestick import BullCandleStick
@@ -32,6 +34,7 @@ from models.risk_reward_model import (
 )
 from utils.extras import format_float
 from utils.risk_reward import validate_risk_reward
+from utils.broadcast import broadcast_msg
 
 
 class StockScreener:
@@ -282,17 +285,15 @@ class StockScreener:
                 and fibo_validation_check
                 and risk_reward_check_fibo
             ):
-                print("Buy Call Detected.")
+                print("Found a Buy Call.")
                 expected_profit = format_float(
                     risk_reward_fibo_response.sell_price
                     - risk_reward_fibo_response.buy_price
                 )
-                print(expected_profit)
                 expected_loss = format_float(
                     risk_reward_fibo_response.buy_price
                     - risk_reward_fibo_response.stop_loss
                 )
-                print(expected_loss)
                 buy_call_response = response_bull_buy_call(
                     stock_id=request.stock_id,
                     stock_name=request.stock_name,
@@ -303,7 +304,32 @@ class StockScreener:
                     expected_loss=expected_loss,
                     exp_risk_reward_ratio=risk_reward_fibo_response.exp_risk_reward,
                 )
-                print(buy_call_response)
+                # Telegram Notification , Streamline later
+                buy_call_response_dict = vars(buy_call_response)
+                pretty_table = PrettyTable()
+                pretty_table.field_names = ["Key", "Value"]
+                for key, value in buy_call_response_dict.items():
+                    pretty_table.add_row([key, value])
+                print(pretty_table)
+
+                # Convert PrettyTable data to a list of dictionaries
+                table_data = [
+                    {"Field": row[0], "Value": row[1]} for row in pretty_table._rows
+                ]
+
+                # Convert table data to a string
+                table_string = ""
+                for row in table_data:
+                    table_string += f"{row['Field']}: {row['Value']}\n"
+
+                # Replace newlines with '\n' for JSON serialization
+                table_string = table_string.replace("\n", "\\n")
+
+                # Convert table data to JSON
+                # json_data = json.dumps(table_data, indent=4)
+                # print(buy_call_response)
+                broadcast_msg(table_string)
+
                 return buy_call_response
             """
             #To Be Enabled after Testing
@@ -348,7 +374,7 @@ class StockScreener:
         start_time = time.time()
         with concurrent.futures.ProcessPoolExecutor() as executor:
             futures = []
-            for index, row in stock_list.iterrows():
+            for index, row in stock_list[:500].iterrows():
                 request_screener = request_all_screener_details(
                     stock_id=row["Symbol"], stock_name=row["Name"]
                 )
