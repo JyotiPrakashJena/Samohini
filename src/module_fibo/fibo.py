@@ -50,7 +50,7 @@ class FiboModules:
         """
         highest_swing = -1
         lowest_swing = -1
-        ratios = [0, 0.236, 0.618, 1]
+        ratios = [0, 0.236, 0.382, 0.618, 1]
         for i in range(1, data.shape[0] - 1):
             if (
                 data["high"][i] > data["high"][i - 1]

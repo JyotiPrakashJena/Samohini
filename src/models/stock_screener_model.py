@@ -37,3 +37,16 @@ class response_all_screener_details(BaseModel):
     fibo_response: response_fibo_module
     sr_response: response_SR_module
     volume_response: response_volume_module
+
+
+class response_bull_buy_call(BaseModel):
+    """Object with details of stock to be traded."""
+
+    stock_id: str
+    stock_name: Optional[str]
+    cur_market_price: float
+    stoploss: float
+    target: float
+    expected_profit: float
+    expected_loss: float
+    exp_risk_reward_ratio: float

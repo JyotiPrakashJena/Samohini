@@ -11,6 +11,7 @@ from module_volume.bull_volume import VolumeIndicator
 from models.stock_screener_model import (
     request_all_screener_details,
     response_all_screener_details,
+    response_bull_buy_call,
 )
 from models.candlestick_model import request_candle_module, response_candle_module
 from models.indicators_model import request_indicator_module, response_indicator_module
@@ -152,7 +153,7 @@ class StockScreener:
         )
         return True if indicator_response_true else False
 
-    def are_approximately_close(self, num1, num2, percent_threshold=5):
+    def are_approximately_close(self, num1, num2, percent_threshold=2):
         """Method to validate if the provided numbers are close by a given threshold %"""
         return abs(num1 - num2) <= (num1 * (percent_threshold / 100))
 
@@ -178,7 +179,7 @@ class StockScreener:
         # For Bullish pattern suppprt is the StopLoss & resistance is the Target.
         if self.are_approximately_close(
             current_mkt_price_now, support
-        ):  # if close by 5% thrshold
+        ):  # if close by 2% thrshold
             sr_response_stock = response_stock_sr(
                 price_now=current_mkt_price_now,
                 stop_loss=support,
@@ -200,7 +201,7 @@ class StockScreener:
         # For Bullish pattern suppprt is the StopLoss & resistance is the Target.
         if self.are_approximately_close(
             current_mkt_price_now, support
-        ):  # if close by 5% thrshold
+        ):  # if close by 2% thrshold
             sr_response_stock = response_stock_fibo(
                 price_now=current_mkt_price_now,
                 stop_loss=support,
@@ -216,10 +217,12 @@ class StockScreener:
         """Method to validate volume indicator."""
         return request.volume_indicators.vol_indicator_check
 
-    def is_risk_reward_validated(self, request: request_risk_reward_module):
+    def is_risk_reward_validation_response(
+        self, request: request_risk_reward_module
+    ) -> response_risk_reward_module:
         """Method to validate Risk Reward."""
         response_risk_reward = validate_risk_reward(request)
-        return response_risk_reward.risk_reward_check
+        return response_risk_reward
 
     def is_stock_valid(self, request: request_all_screener_details):
         """Helper function to validate if a stock is valid."""
@@ -254,7 +257,11 @@ class StockScreener:
                 stop_loss=sr_validation_response.stop_loss,
                 rr_ratio=SR_EXP_RR_RATIO,
             )
-            risk_reward_check_sr = self.is_risk_reward_validated(risk_reward_request_sr)
+            risk_reward_sr_response = self.is_risk_reward_validation_response(
+                risk_reward_request_sr
+            )
+            risk_reward_check_sr = risk_reward_sr_response.risk_reward_check
+            # TO-DO: After Validation of Support Resistance.
 
             # For Fibo Risk Reward Check
             FIBO_EXP_RR_RATIO = 2
@@ -264,9 +271,10 @@ class StockScreener:
                 stop_loss=fibo_validation_response.stop_loss,
                 rr_ratio=FIBO_EXP_RR_RATIO,
             )
-            risk_reward_check_fibo = self.is_risk_reward_validated(
+            risk_reward_fibo_response = self.is_risk_reward_validation_response(
                 risk_reward_request_fibo
             )
+            risk_reward_check_fibo = risk_reward_fibo_response.risk_reward_check
             if (
                 candle_check
                 and indicator_check
@@ -274,13 +282,29 @@ class StockScreener:
                 and fibo_validation_check
                 and risk_reward_check_fibo
             ):
-                print(
-                    "Fibo Module levels Detected: ",
-                    fibo_validation_response.stop_loss,
-                    fibo_validation_response.target,
+                print("Buy Call Detected.")
+                expected_profit = format_float(
+                    risk_reward_fibo_response.sell_price
+                    - risk_reward_fibo_response.buy_price
                 )
-                print(risk_reward_request_fibo.__dict__)
-                return all_screener_response
+                print(expected_profit)
+                expected_loss = format_float(
+                    risk_reward_fibo_response.buy_price
+                    - risk_reward_fibo_response.stop_loss
+                )
+                print(expected_loss)
+                buy_call_response = response_bull_buy_call(
+                    stock_id=request.stock_id,
+                    stock_name=request.stock_name,
+                    cur_market_price=risk_reward_fibo_response.buy_price,
+                    stoploss=risk_reward_fibo_response.stop_loss,
+                    target=risk_reward_fibo_response.sell_price,
+                    expected_profit=expected_profit,
+                    expected_loss=expected_loss,
+                    exp_risk_reward_ratio=risk_reward_fibo_response.exp_risk_reward,
+                )
+                print(buy_call_response)
+                return buy_call_response
             """
             #To Be Enabled after Testing
             elif candle_check and indicator_check and volume_check and sr_validation_check and risk_reward_check_sr:
@@ -330,16 +354,17 @@ class StockScreener:
                 )
                 futures.append(executor.submit(self.is_stock_valid, request_screener))
 
-            results = []
+            # results = []
             counter = 0
             for i, future in enumerate(concurrent.futures.as_completed(futures)):
                 result = future.result()
                 print(f"Task Completed with Id: {i}")
                 if result:
                     counter += 1
-                    results.append(result)
-                    if len(results) % 10:
-                        yield results
-                        results = []
+                    yield result
+                    # results.append(result)
+                    # if len(results) % 10:
+                    #     yield results
+                    #     results = []
             print(f"Total Time Consumed: {time.time()-start_time}")
             print(f"Total Buy Calls...{counter}")
