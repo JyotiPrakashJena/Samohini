@@ -7,6 +7,7 @@ from models.candlestick_model import (
     request_candle_module,
     response_candle_module,
 )
+from models.stock import request_stock_data
 from module_stock.stock import StockDetails
 
 
@@ -82,9 +83,11 @@ class BullCandleStick:
         """Helper function handles response of Bullish candlestick."""
         if request.stock_data.empty:
             self.stock_data = StockDetails().get_stock_data(
-                stock_id=request.stock_id,
-                period=request.period,
-                time_frame=request.time_frame,
+                request_stock_data(
+                    stock_id=request.stock_id,
+                    period=request.period,
+                    time_frame=request.time_frame,
+                )
             )
         else:
             self.stock_data = request.stock_data

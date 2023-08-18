@@ -27,6 +27,7 @@ from models.fibo_model import (
     response_fibo_module,
     response_stock_fibo,
 )
+from models.stock import request_stock_data
 from models.volume_model import request_volume_module, response_volume_module
 from models.risk_reward_model import (
     response_risk_reward_module,
@@ -118,9 +119,11 @@ class StockScreener:
         """Validate if a stock passes all the checks."""
         try:
             stock_data = StockDetails().get_stock_data(
-                stock_id=request.stock_id,
-                period=request.period,
-                time_frame=request.time_frame,
+                request_stock_data(
+                    stock_id=request.stock_id,
+                    period=request.period,
+                    time_frame=request.time_frame,
+                )
             )
             request.stock_data = stock_data
             candle_stick_response = self.handler_bull_candle_response(request)
@@ -328,7 +331,7 @@ class StockScreener:
                 # Convert table data to JSON
                 # json_data = json.dumps(table_data, indent=4)
                 # print(buy_call_response)
-                #broadcast_msg(table_string)
+                # broadcast_msg(table_string)
 
                 return buy_call_response
             """

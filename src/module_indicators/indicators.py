@@ -5,6 +5,7 @@ from models.indicators_model import (
     response_indicator_module,
 )
 from module_stock.stock import StockDetails
+from models.stock import request_stock_data
 from utils.extras import format_float
 
 
@@ -68,9 +69,11 @@ class BullIndicators:
         """Helper function handles response of Bullish Indicators."""
         if request.stock_data.empty:
             self.stock_data = StockDetails().get_stock_data(
-                stock_id=request.stock_id,
-                period=request.period,
-                time_frame=request.time_frame,
+                request_stock_data(
+                    stock_id=request.stock_id,
+                    period=request.period,
+                    time_frame=request.time_frame,
+                )
             )
         else:
             self.stock_data = request.stock_data

@@ -1,10 +1,12 @@
-from fastapi import FastAPI
-from fastapi_pagination import Page, add_pagination, paginate
+from fastapi import FastAPI, Query
+from datetime import datetime
+import pytz
 
 from module_fibo.fibo import FiboModules
 from module_candlestick.bull_candlestick import BullCandleStick
 from module_indicators.indicators import BullIndicators
 from module_sr.support_resistance import SupportResistanceIndicator
+from module_stock.stock import StockDetails
 from module_volume.bull_volume import VolumeIndicator
 from automated_scripts.stock_screener import StockScreener
 from models.candlestick_model import request_candle_module, response_candle_module
@@ -13,6 +15,11 @@ from models.indicators_model import request_indicator_module, response_indicator
 from models.risk_reward_model import (
     request_risk_reward_module,
     response_risk_reward_module,
+)
+from models.stock import (
+    request_stock_data,
+    request_stock_data_by_start_end_date,
+    request_stock_data_by_period,
 )
 from models.support_resistance_model import request_SR_module, response_SR_module
 from models.volume_model import request_volume_module, response_volume_module
@@ -24,10 +31,15 @@ from utils.risk_reward import validate_risk_reward
 
 import pandas as pd
 
+
 tags_metadata = [
     {
+        "name": "StockDetails",
+        "description": "Opearations to fetch stock details.",
+    },
+    {
         "name": "StockScreeners",
-        "description": "Operations with stocks.",
+        "description": "Operations with stock screening.",
     },
     {
         "name": "Welcome",
@@ -159,3 +171,52 @@ def get_bullish_buy_calls() -> object:
         return response
     except Exception as e:
         print(e)
+
+
+@app.get("/get_stock_data", tags=["StockDetails"])
+def get_stock_details(stock_id: str, period: int = 1, time_frame: str = "d"):
+    request = request_stock_data(
+        stock_id=stock_id, period=period, time_frame=time_frame
+    )
+    response = StockDetails().get_stock_data(request)
+    return response.to_dict(orient="records")
+
+
+@app.get("/get_stock_data_by_start_end_date", tags=["StockDetails"])
+def get_stock_details_by_start_end_date(
+    stock_id: str,
+    start_date: str = Query("18-08-2022"),
+    end_date: str = Query("18-08-2023"),
+    period: int = Query("1"),
+    time_frame: str = Query("d"),
+):
+    request = request_stock_data_by_start_end_date(
+        stock_id=stock_id,
+        start_date=start_date,
+        end_date=end_date,
+        time_frame=time_frame,
+        period=period,
+    )
+    response = StockDetails().get_stock_data_by_start_end_date(request)
+    return response.to_dict(orient="records")
+
+
+@app.get("/get_stock_details_by_period", tags=["StockDetails"])
+def get_stock_details_by_period(
+    stock_id: str,
+    interval: int,
+    period: int = 1,
+    time_frame: str = "d",
+    end_day_period: int = 0,
+    end_date: str = datetime.now(pytz.timezone("Asia/Kolkata")).strftime("%d-%m-%Y"),
+):
+    request = request_stock_data_by_period(
+        stock_id=stock_id,
+        back_in_period=interval,
+        period=period,
+        time_frame=time_frame,
+        end_day_period=end_day_period,
+        end_date=end_date,
+    )
+    response = StockDetails().get_stock_data_by_period(request)
+    return response.to_dict(orient="records")
