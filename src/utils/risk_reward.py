@@ -13,7 +13,7 @@ def validate_risk_reward(
     expected_loss = request.buy_price - request.stop_loss
     expected_risk_reward = format_float(expected_profit / expected_loss)
     return response_risk_reward_module(
-        buy_price=request.buy_price,
+        buy_price=format_float(request.buy_price),
         sell_price=request.sell_price,
         rr_ratio=request.rr_ratio,
         stop_loss=request.stop_loss,

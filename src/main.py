@@ -8,6 +8,7 @@ from module_indicators.indicators import BullIndicators
 from module_sr.support_resistance import SupportResistanceIndicator
 from module_stock.stock import StockDetails
 from module_volume.bull_volume import VolumeIndicator
+from module_core.samohini_db_methods import CoreCRUD
 from automated_scripts.stock_screener import StockScreener
 from models.candlestick_model import request_candle_module, response_candle_module
 from models.fibo_model import request_fibo_module, response_fibo_module
@@ -16,6 +17,8 @@ from models.risk_reward_model import (
     request_risk_reward_module,
     response_risk_reward_module,
 )
+from models.samohini_core_model import PySelectedTradeTable, PyExecutedTradeTable
+from module_core.samohini_core_schema import SelectedTradeTable, ExecutedTradeTable
 from models.stock import (
     request_stock_data,
     request_stock_data_by_start_end_date,
@@ -40,6 +43,14 @@ tags_metadata = [
     {
         "name": "StockScreeners",
         "description": "Operations with stock screening.",
+    },
+    {
+        "name": "DBSelectedTrade",
+        "description": "Operations with DB Modules with SelectedTrade Table.",
+    },
+    {
+        "name": "DBExecutedTrade",
+        "description": "Operations with DB Modules with ExecutedTrade Table.",
     },
     {
         "name": "Welcome",
@@ -220,3 +231,115 @@ def get_stock_details_by_period(
     )
     response = StockDetails().get_stock_data_by_period(request)
     return response.to_dict(orient="records")
+
+
+@app.get('/selected_table/add_entry', tags=["DBSelectedTrade"])
+def selected_table_add_entry(stock_id: str,
+                             buy_price: float, stoploss: float,
+                             target: float, expected_profit: float,
+                             expected_loss:float, exp_risk_reward_ratio: float, stock_name: str=''):
+    """Create Entry of SelectedTable by stock_id."""
+    request = PySelectedTradeTable(stock_id=stock_id,
+                                   buy_price=buy_price,
+                                   stoploss=stoploss,
+                                   target=target,
+                                   expected_profit=expected_profit,
+                                   expected_loss=expected_loss,
+                                   exp_risk_reward_ratio=exp_risk_reward_ratio,
+                                   stock_name=stock_name)
+    return CoreCRUD(SelectedTradeTable).create(vars(request))
+
+
+@app.get('/selected_table/update_entry', tags=["DBSelectedTrade"])
+def selected_table_update_entry(stock_id: str,
+                             buy_price: float, stoploss: float,
+                             target: float, expected_profit: float,
+                             expected_loss:float, exp_risk_reward_ratio: float, stock_name: str=''):
+    """Update Entry of SelectedTable by stock_id."""
+    request = PySelectedTradeTable(stock_id=stock_id,
+                                   buy_price=buy_price,
+                                   stoploss=stoploss,
+                                   target=target,
+                                   expected_profit=expected_profit,
+                                   expected_loss=expected_loss,
+                                   exp_risk_reward_ratio=exp_risk_reward_ratio,
+                                   stock_name=stock_name)
+    return CoreCRUD(SelectedTradeTable).update(stock_id, vars(request))
+
+
+@app.get('/selected_table/get_details_by_id', tags=["DBSelectedTrade"])
+def selected_table_details_by_id(stock_id: str):
+    """Method to stock details of SelectedTable by stock_id."""
+    return CoreCRUD(SelectedTradeTable).get_by_stock_id(stock_id)
+
+
+@app.get('/selected_table/delete_details_by_id', tags=["DBSelectedTrade"])
+def selected_table_delete_by_id(stock_id: str):
+    """Method to stock details of SelectedTable by stock_id."""
+    return CoreCRUD(SelectedTradeTable).delete(stock_id)
+
+
+@app.get('/selected_table/get_all', tags=["DBSelectedTrade"])
+def get_all_from_selected_table(offset:int=0, limit: int=10):
+    """Method to stock details of Selected Trade Table by stock_id."""
+    return CoreCRUD(SelectedTradeTable).get_all(skip=offset, limit=limit)
+
+
+@app.get('/executed_table/add_entry', tags=["DBExecutedTrade"])
+def executed_table_add_entry(stock_id: str,
+                             buy_price: float, stoploss: float,
+                             current_market_price:float,
+                             target: float, profit_till_now: float,
+                             loss_till_now: float,profit_check: bool,
+                             loss_check:bool, stock_name: str=''):
+    """Create Entry of SelectedTable by stock_id."""
+    request = PyExecutedTradeTable(stock_id=stock_id,
+                                   buy_price=buy_price,
+                                   stoploss=stoploss,
+                                   target=target,
+                                   current_market_price=current_market_price,
+                                   profit_till_now=profit_till_now,
+                                   loss_till_now=loss_till_now,
+                                   profit_check=profit_check,
+                                   loss_check=loss_check,
+                                   stock_name=stock_name)
+    return CoreCRUD(ExecutedTradeTable).create(vars(request))
+
+
+@app.get('/executed_table/update_entry', tags=["DBExecutedTrade"])
+def executed_table_update_entry(stock_id: str,
+                             buy_price: float, stoploss: float,
+                             current_market_price:float,
+                             target: float, profit_till_now: float,
+                             loss_till_now: float,profit_check: bool,
+                             loss_check:bool, stock_name: str=''):
+    """Update Entry of ElectedTable by stock_id."""
+    request = PyExecutedTradeTable(stock_id=stock_id,
+                                   buy_price=buy_price,
+                                   stoploss=stoploss,
+                                   target=target,
+                                   current_market_price=current_market_price,
+                                   profit_till_now=profit_till_now,
+                                   loss_till_now=loss_till_now,
+                                   profit_check=profit_check,
+                                   loss_check=loss_check,
+                                   stock_name=stock_name)
+    return CoreCRUD(ExecutedTradeTable).update(stock_id, vars(request))
+
+
+@app.get('/executed_table/get_stock_details_by_id', tags=["DBExecutedTrade"])
+def executed_table_details_by_id(stock_id: str):
+    """Method to stock details of ExecutedTrade Table by stock_id."""
+    return CoreCRUD(ExecutedTradeTable).get_by_stock_id(stock_id)
+
+
+@app.get('/executed_table/delete_details_by_id', tags=["DBExecutedTrade"])
+def executed_table_delete_by_id(stock_id: str):
+    """Method to stock details of Executed Trade Table by stock_id."""
+    return CoreCRUD(ExecutedTradeTable).delete(stock_id)
+
+
+@app.get('/executed_table/get_all', tags=["DBExecutedTrade"])
+def get_all_from_executed_table(offset:int=0, limit: int=10):
+    """Method to stock details of Executed Trade Table by stock_id."""
+    return CoreCRUD(ExecutedTradeTable).get_all(skip=offset, limit=limit)

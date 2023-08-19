@@ -391,9 +391,5 @@ class StockScreener:
                 if result:
                     counter += 1
                     yield result
-                    # results.append(result)
-                    # if len(results) % 10:
-                    #     yield results
-                    #     results = []
             print(f"Total Time Consumed: {time.time()-start_time}")
             print(f"Total Buy Calls...{counter}")
