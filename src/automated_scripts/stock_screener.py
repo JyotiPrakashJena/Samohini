@@ -9,7 +9,10 @@ from module_indicators.indicators import BullIndicators
 from module_sr.support_resistance import SupportResistanceIndicator
 from module_fibo.fibo import FiboModules
 from module_volume.bull_volume import VolumeIndicator
+from module_core.samohini_db_methods import CoreCRUD
+from module_core.samohini_core_schema import SelectedTradeTable, ExecutedTradeTable
 
+from models.samohini_core_model import PyExecutedTradeTable, PySelectedTradeTable
 from models.stock_screener_model import (
     request_all_screener_details,
     response_all_screener_details,
@@ -27,7 +30,7 @@ from models.fibo_model import (
     response_fibo_module,
     response_stock_fibo,
 )
-from models.stock import request_stock_data
+from models.stock import request_stock_data, request_stock_data_by_period
 from models.volume_model import request_volume_module, response_volume_module
 from models.risk_reward_model import (
     response_risk_reward_module,
@@ -40,6 +43,100 @@ from utils.broadcast import broadcast_msg
 
 class StockScreener:
     """Class with methods to screen stocks from the pool."""
+
+    def is_stock_valid_v2_performance(self, end_date, back_in_period, request: request_all_screener_details):
+        """Helper function to validate if a stock is valid."""
+        try:
+            all_screener_response = self.get_all_screener_details_v2_performance(end_date, back_in_period,request)
+            candle_check = self.is_candle_stick_validated(
+                all_screener_response.candle_stick_response
+            )
+            indicator_check = self.is_indicator_stock_validated(
+                all_screener_response.indicator_response
+            )
+            volume_check = self.is_volume_validated(
+                all_screener_response.volume_response
+            )
+            sr_validation_response = self.is_sr_stock_validated(
+                all_screener_response.sr_response
+            )
+            sr_validation_check = sr_validation_response.sr_indicator
+
+            fibo_validation_response = self.is_fibo_validated(
+                all_screener_response.fibo_response
+            )
+            fibo_validation_check = fibo_validation_response.fibo_indicator
+
+            current_market_data = request.stock_data
+            current_market_price = current_market_data.iloc[-1]
+
+            SR_EXP_RR_RATIO = 2
+            risk_reward_request_sr = request_risk_reward_module(
+                buy_price=current_market_price["close"],
+                sell_price=sr_validation_response.target,
+                stop_loss=sr_validation_response.stop_loss,
+                rr_ratio=SR_EXP_RR_RATIO,
+            )
+            risk_reward_sr_response = self.is_risk_reward_validation_response(
+                risk_reward_request_sr
+            )
+            risk_reward_check_sr = risk_reward_sr_response.risk_reward_check
+            # TO-DO: After Validation of Support Resistance.
+
+            # For Fibo Risk Reward Check
+            FIBO_EXP_RR_RATIO = 2
+            risk_reward_request_fibo = request_risk_reward_module(
+                buy_price=current_market_price["close"],
+                sell_price=fibo_validation_response.target,
+                stop_loss=fibo_validation_response.stop_loss,
+                rr_ratio=FIBO_EXP_RR_RATIO,
+            )
+            risk_reward_fibo_response = self.is_risk_reward_validation_response(
+                risk_reward_request_fibo
+            )
+            risk_reward_check_fibo = risk_reward_fibo_response.risk_reward_check
+            if (
+                candle_check
+                and indicator_check
+                and volume_check
+                and fibo_validation_check
+                and risk_reward_check_fibo
+            ):
+                print("Found a Buy Call.")
+                expected_profit = format_float(
+                    risk_reward_fibo_response.sell_price
+                    - risk_reward_fibo_response.buy_price
+                )
+                expected_loss = format_float(
+                    risk_reward_fibo_response.buy_price
+                    - risk_reward_fibo_response.stop_loss
+                )
+                buy_call_response = response_bull_buy_call(
+                    stock_id=request.stock_id,
+                    stock_name=request.stock_name,
+                    cur_market_price=risk_reward_fibo_response.buy_price,
+                    stoploss=risk_reward_fibo_response.stop_loss,
+                    target=format_float(risk_reward_fibo_response.sell_price),
+                    expected_profit=expected_profit,
+                    expected_loss=expected_loss,
+                    exp_risk_reward_ratio=risk_reward_fibo_response.exp_risk_reward,
+                )
+                db_request = PySelectedTradeTable(
+                    stock_id=request.stock_id,
+                    stock_name=request.stock_name,
+                    buy_price=buy_call_response.cur_market_price,
+                    stoploss=buy_call_response.stoploss,
+                    target=format_float(buy_call_response.target),
+                    expected_profit=buy_call_response.expected_profit,
+                    expected_loss=buy_call_response.expected_loss,
+                    exp_risk_reward_ratio=buy_call_response.exp_risk_reward_ratio,
+                )
+                db_entry_response = CoreCRUD(SelectedTradeTable).create(
+                    vars(db_request)
+                )
+                return buy_call_response
+        except Exception as e:
+            print(f'Error: {e}')
 
     def handler_bull_candle_response(
         self, request: request_all_screener_details
@@ -144,6 +241,44 @@ class StockScreener:
             return get_all_screener_response
         except Exception as e:
             print(f"Exception: {e}")
+
+
+    def get_all_screener_details_v2_performance(
+        self, end_date, back_in_period, request: request_all_screener_details
+    ) -> response_all_screener_details:
+        """Validate if a stock passes all the checks for performance validation."""
+        # print("Validate if a stock passes all the checks for performance validation")
+        try:
+            #print(request)
+            stock_data = StockDetails().get_stock_data_by_period(
+                request_stock_data_by_period(
+                    stock_id=request.stock_id,
+                    period=request.period,
+                    time_frame='d',
+                    back_in_period=back_in_period,
+                    end_date=end_date
+                )
+            )
+            request.stock_data = stock_data
+            candle_stick_response = self.handler_bull_candle_response(request)
+            indicator_response = self.handler_indicator_response(request)
+            sr_response = self.handler_sr_response(request)
+            fibo_response = self.handler_fibo_response(request)
+            volume_response = self.handler_volume_response(request)
+            get_all_screener_response = response_all_screener_details(
+                stock_id=request.stock_id,
+                stock_name=request.stock_name,
+                time_period=f"{request.period}{request.time_frame}",
+                candle_stick_response=candle_stick_response,
+                indicator_response=indicator_response,
+                fibo_response=fibo_response,
+                sr_response=sr_response,
+                volume_response=volume_response,
+            )
+            return get_all_screener_response
+        except Exception as e:
+            print(f"Exception: {e}")
+
 
     def is_candle_stick_validated(self, request: response_candle_module) -> bool:
         """Helper function to validate if the candle_stick pattern satisfied."""
@@ -302,37 +437,24 @@ class StockScreener:
                     stock_name=request.stock_name,
                     cur_market_price=risk_reward_fibo_response.buy_price,
                     stoploss=risk_reward_fibo_response.stop_loss,
-                    target=risk_reward_fibo_response.sell_price,
+                    target=format_float(risk_reward_fibo_response.sell_price),
                     expected_profit=expected_profit,
                     expected_loss=expected_loss,
                     exp_risk_reward_ratio=risk_reward_fibo_response.exp_risk_reward,
                 )
-                # Telegram Notification , Streamline later
-                buy_call_response_dict = vars(buy_call_response)
-                pretty_table = PrettyTable()
-                pretty_table.field_names = ["Key", "Value"]
-                for key, value in buy_call_response_dict.items():
-                    pretty_table.add_row([key, value])
-                print(pretty_table)
-
-                # Convert PrettyTable data to a list of dictionaries
-                table_data = [
-                    {"Field": row[0], "Value": row[1]} for row in pretty_table._rows
-                ]
-
-                # Convert table data to a string
-                table_string = ""
-                for row in table_data:
-                    table_string += f"{row['Field']}: {row['Value']}\n"
-
-                # Replace newlines with '\n' for JSON serialization
-                table_string = table_string.replace("\n", "\\n")
-
-                # Convert table data to JSON
-                # json_data = json.dumps(table_data, indent=4)
-                # print(buy_call_response)
-                # broadcast_msg(table_string)
-
+                db_request = PySelectedTradeTable(
+                    stock_id=request.stock_id,
+                    stock_name=request.stock_name,
+                    buy_price=buy_call_response.cur_market_price,
+                    stoploss=buy_call_response.stoploss,
+                    target=format_float(buy_call_response.target),
+                    expected_profit=buy_call_response.expected_profit,
+                    expected_loss=buy_call_response.expected_loss,
+                    exp_risk_reward_ratio=buy_call_response.exp_risk_reward_ratio,
+                )
+                db_entry_response = CoreCRUD(SelectedTradeTable).create(
+                    vars(db_request)
+                )
                 return buy_call_response
             """
             #To Be Enabled after Testing
@@ -382,6 +504,31 @@ class StockScreener:
                     stock_id=row["Symbol"], stock_name=row["Name"]
                 )
                 futures.append(executor.submit(self.is_stock_valid, request_screener))
+
+            # results = []
+            counter = 0
+            for i, future in enumerate(concurrent.futures.as_completed(futures)):
+                result = future.result()
+                print(f"Task Completed with Id: {i}")
+                if result:
+                    counter += 1
+                    yield result
+            print(f"Total Time Consumed: {time.time()-start_time}")
+            print(f"Total Buy Calls...{counter}")
+
+    
+    def get_buy_calls_v2_performance(self, end_date, back_in_period):
+        """Helper method to extract stocks from the pool."""
+        stock_list = StockDetails().get_stock_list()
+
+        start_time = time.time()
+        with concurrent.futures.ProcessPoolExecutor() as executor:
+            futures = []
+            for index, row in stock_list.iterrows():
+                request_screener = request_all_screener_details(
+                    stock_id=row["Symbol"], stock_name=row["Name"]
+                )
+                futures.append(executor.submit(self.is_stock_valid_v2_performance, end_date, back_in_period, request_screener))
 
             # results = []
             counter = 0

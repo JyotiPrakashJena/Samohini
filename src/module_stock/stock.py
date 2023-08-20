@@ -64,7 +64,6 @@ class StockDetails:
         # interval='1d'
 
         # NOTE: StartDate are not Inclusing so to fetch for 18th Aug, Send request for 19th Augusteifjcbfcnrjturdjvkrnubrjbnditerdrufcbfuelbic
-
         start_date = datetime.strptime(request.start_date, "%d-%m-%Y")
         end_date = datetime.strptime(request.end_date, "%d-%m-%Y") + timedelta(days=1)
         stock_data = (
@@ -89,14 +88,11 @@ class StockDetails:
         return stock_data
 
     def get_stock_data_by_period(self, request: request_stock_data_by_period):
-        """Method to fetch stock data by a period for both start day and end day."""
-
+        """Method to fetch stock data by a period.."""
         ist_timezone = pytz.timezone("Asia/Kolkata")
         time_now_obj = datetime.now(ist_timezone).strftime("%d-%m-%Y")
         if time_now_obj != request.end_date:
-            print(
-                "Fetching stock data for a past start date and end date, Consider end days period"
-            )
+            # Fetching stock data for a past start date and end date, Consider end days period
             # Going Back in time for end date
             time_now_obj = datetime.strptime(time_now_obj, "%d-%m-%Y")
             time_now_obj = time_now_obj - timedelta(days=request.end_day_period)
@@ -107,16 +103,12 @@ class StockDetails:
 
         start_date_obj = end_date_obj - timedelta(days=request.back_in_period)
         start_date = start_date_obj.strftime("%d-%m-%Y")
-
         request_stock_data_by_date = request_stock_data_by_start_end_date(
             stock_id=request.stock_id,
             start_date=start_date,
             end_date=end_date,
             period=request.period,
-            time_frame=request.time_frame,
-            back_in_period=request.back_in_period,
+            time_frame=request.time_frame
         )
         stock_data = self.get_stock_data_by_start_end_date(request_stock_data_by_date)
-        stock_data.reset_index(inplace=True)
-        stock_data.rename(columns={"index": "date"}, inplace=True)
         return stock_data

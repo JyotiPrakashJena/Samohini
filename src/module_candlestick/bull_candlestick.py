@@ -91,17 +91,17 @@ class BullCandleStick:
             )
         else:
             self.stock_data = request.stock_data
-        cur_market_price = current_market_price(
+            cur_market_price = current_market_price(
             open=format_float(self.stock_data["open"][-1]),
             price_now=format_float(self.stock_data["close"][-1]),
             low=format_float(self.stock_data["low"][-1]),
             high=format_float(self.stock_data["high"][-1]),
-        )
-        candle_bull_response = response_candle_module(
+            )
+            candle_bull_response = response_candle_module(
             stock_id=request.stock_id,
             stock_name=request.stock_name,
             time_period=f"{request.period}{request.time_frame}",
             bullish_candles=self.get_bullish_candles(),
             cur_market_price=cur_market_price,
-        )
+            )
         return candle_bull_response
