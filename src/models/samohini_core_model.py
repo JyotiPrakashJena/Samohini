@@ -46,7 +46,7 @@ class PyProfitExecutedTable(BaseModel):
     sell_price: float
     curr_price: float
     target: float
-    loss: float
+    stoploss: float
     booked_profit: float
     trade_date: datetime
 
@@ -60,6 +60,6 @@ class PyLossExecutedTable(BaseModel):
     sell_price: float
     curr_price: float
     target: float
-    loss: float
+    stoploss: float
     booked_loss: float
     trade_date: datetime

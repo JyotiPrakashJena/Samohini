@@ -466,7 +466,7 @@ def profit_executed_update_entry(
     trade_date = datetime.now(pytz.timezone("Asia/Kolkata")).strftime("%d-%m-%Y")
     trade_date_obj = datetime.strptime(trade_date,'%d-%m-%Y')
     request = PyProfitExecutedTable(
-        tock_id=stock_id,
+        stock_id=stock_id,
         buy_price=buy_price,
         stoploss=stoploss,
         target=target,

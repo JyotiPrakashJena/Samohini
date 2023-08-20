@@ -1,4 +1,6 @@
-from running_module import main
+from . import main
+from module_core.samohini_db_methods import CoreCRUD
+from module_core.samohini_core_schema import ExecutedTradeTable
 
 def value_from_dict(dict_: dict, key: str):
     return dict_.get(key)
@@ -10,6 +12,7 @@ import time
 def execute_selected_stocks():
     """Fetch the Selected Stocks for Execution."""
     selected_stocks = main.get_all_from_selected_table(offset=0, limit=50)
+    EXECUTED_ENTRIES = []
     for selected_stock in selected_stocks:
         stock_id = value_from_dict(selected_stock, "stock_id")
         stock_current_mkt_price = main.get_stock_details(stock_id)  # For Period=1day
@@ -27,9 +30,21 @@ def execute_selected_stocks():
             loss_check = True
             profit_till_now = 0
             profit_check = False
-        get_executed_by_stock_id = main.executed_table_details_by_id(stock_id)
+        #get_executed_by_stock_id = main.executed_table_details_by_id(stock_id)
         # If stocks in the Selected List not present in Executed List, Add an Entry
-        if "Exception" in get_executed_by_stock_id:
+        #if "Exception" in get_executed_by_stock_id:
+        executed_dict = {"stock_id":stock_id,
+            "stock_name":value_from_dict(selected_stock, "stock_name"),
+            "buy_price":buy_price,
+            "stoploss":value_from_dict(selected_stock, "stoploss"),
+            "current_market_price":current_price,
+            "target":value_from_dict(selected_stock, "target"),
+            "profit_till_now":profit_till_now,
+            "loss_till_now":loss_till_now,
+            "profit_check":profit_check,
+            "loss_check":loss_check
+            }
+        EXECUTED_ENTRIES.append(executed_dict)
             # main.executed_table_add_entry(
             #     stock_id=stock_id,
             #     stock_name=value_from_dict(selected_stock, "stock_name"),
@@ -42,22 +57,23 @@ def execute_selected_stocks():
             #     profit_check=profit_check,
             #     loss_check=loss_check,
             # )
-            print(f"{stock_id} Included in the Execution Table. profit till Now: {profit_till_now}")
-        else:
-            # If stocks in the Selected List present in Executed List, Update the Entry
-            # main.executed_table_update_entry(
-            #     stock_id=stock_id,
-            #     stock_name=value_from_dict(selected_stock, "stock_name"),
-            #     buy_price=buy_price,
-            #     stoploss=value_from_dict(selected_stock, "stoploss"),
-            #     current_market_price=current_price,
-            #     target=value_from_dict(selected_stock, "target"),
-            #     profit_till_now=profit_till_now,
-            #     loss_till_now=loss_till_now,
-            #     profit_check=profit_check,
-            #     loss_check=loss_check,
-            # )
-            print(f"{stock_id} updated in the Execution Table. Loss till now: {loss_till_now}")
+        print(f"{stock_id} Included in the Execution Table. profit till Now: {profit_till_now}")
+        # else:
+        #     #If stocks in the Selected List present in Executed List, Update the Entry
+        #     main.executed_table_update_entry(
+        #         stock_id=stock_id,
+        #         stock_name=value_from_dict(selected_stock, "stock_name"),
+        #         buy_price=buy_price,
+        #         stoploss=value_from_dict(selected_stock, "stoploss"),
+        #         current_market_price=current_price,
+        #         target=value_from_dict(selected_stock, "target"),
+        #         profit_till_now=profit_till_now,
+        #         loss_till_now=loss_till_now,
+        #         profit_check=profit_check,
+        #         loss_check=loss_check,
+        #     )
+        #     print(f"{stock_id} updated in the Execution Table. Loss till now: {loss_till_now}")
+    CoreCRUD(ExecutedTradeTable).create_multiple_entries(EXECUTED_ENTRIES)
     return {"messages": "Execution Completed.(Selected Stocks has been Traded.)"}
 
 
@@ -98,5 +114,5 @@ def generate_profit_loss_report():
 
 print("Executing Selected Stocks")
 execute_selected_stocks()
-print("Booking Profit/Loss")
-generate_profit_loss_report()
+# print("Booking Profit/Loss")
+# generate_profit_loss_report()
