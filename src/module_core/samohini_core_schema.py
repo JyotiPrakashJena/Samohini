@@ -2,13 +2,15 @@ import os
 
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy import create_engine, Column, String, Float, Boolean
+from sqlalchemy import create_engine, Column, String, Float, Boolean, MetaData
 
 
-SQLALCHEMY_DATABASE_URL = os.environ.get('SQLALCHEMY_DATABASE_URL')
-engine = create_engine(
-    SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
-)
+DB_USERNAME = os.environ.get('DB_USERNAME')
+DB_PASSWORD = os.environ.get('DB_PASSWORD')
+DB_INSTANCE = os.environ.get('DB_INSTANCE')
+SQLALCHEMY_DATABASE_URL = f'postgresql://{DB_USERNAME}:{DB_PASSWORD}@{DB_INSTANCE}'
+
+engine = create_engine(SQLALCHEMY_DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
@@ -42,5 +44,5 @@ class ExecutedTradeTable(Base):
     profit_check = Column(Boolean)
     loss_check = Column(Boolean)
 
-
+#Creating Tables in database
 #Base.metadata.create_all(bind=engine) #To Create Entries in DB
