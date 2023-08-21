@@ -10,7 +10,8 @@ from .samohini_core_schema import ExecutedTradeTable, SelectedTradeTable
 DB_USERNAME = os.environ.get("DB_USERNAME")
 DB_PASSWORD = os.environ.get("DB_PASSWORD")
 DB_INSTANCE = os.environ.get("DB_INSTANCE")
-SQLALCHEMY_DATABASE_URL = f"postgresql://{DB_USERNAME}:{DB_PASSWORD}@{DB_INSTANCE}"
+DB_NAME = os.environ.get("DB_NAME")
+SQLALCHEMY_DATABASE_URL = f"postgresql://{DB_USERNAME}:{DB_PASSWORD}@{DB_INSTANCE}/{DB_NAME}"
 
 engine = create_engine(SQLALCHEMY_DATABASE_URL, pool_size=10, max_overflow=15)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

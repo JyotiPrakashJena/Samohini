@@ -8,7 +8,10 @@ from sqlalchemy import create_engine, Column, String, Float, Boolean, DateTime, 
 DB_USERNAME = os.environ.get("DB_USERNAME")
 DB_PASSWORD = os.environ.get("DB_PASSWORD")
 DB_INSTANCE = os.environ.get("DB_INSTANCE")
-SQLALCHEMY_DATABASE_URL = f"postgresql://{DB_USERNAME}:{DB_PASSWORD}@{DB_INSTANCE}"
+DB_NAME = os.environ.get("DB_NAME")
+DB_PORT = os.environ.get("DB_PORT")
+SQLALCHEMY_DATABASE_URL = f"postgresql://{DB_USERNAME}:{DB_PASSWORD}@{DB_INSTANCE}/{DB_NAME}"
+
 
 engine = create_engine(SQLALCHEMY_DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
@@ -75,5 +78,5 @@ class LossExecutedTable(Base):
     trade_date = Column(DateTime)
 
 
-# Creating Tables in database
+# print("Creating Tables in database")
 # Base.metadata.create_all(bind=engine) #To Create Entries in DB
