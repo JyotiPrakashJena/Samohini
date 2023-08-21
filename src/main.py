@@ -41,6 +41,7 @@ from models.stock_screener_model import (
     response_all_screener_details,
 )
 from utils.risk_reward import validate_risk_reward
+from samohini_report import generate_profit_loss_report, execute_selected_stocks
 
 
 
@@ -215,16 +216,22 @@ def get_bullish_buy_calls(start_date:str, back_in_period: int, end_date: str=dat
     try:
         end_date_obj = datetime.strptime(end_date, "%d-%m-%Y")
         start_date_obj = datetime.strptime(start_date, "%d-%m-%Y")
-        if start_date > end_date:
+        if start_date_obj > end_date_obj:
             return {'Exception':f'Starting Date {start_date} should be before Ending Date {end_date}'}
-        #responses = []
-        while start_date_obj<=end_date_obj:
+        responses = []
+        while start_date_obj<end_date_obj:
+            if start_date_obj.weekday() < 5:
+                start_date = start_date_obj.strftime("%d-%m-%Y")
+                print(f"Processing for {start_date}")
+                response = StockScreener().get_buy_calls_v2_performance(start_date, back_in_period)
+                yield response
+                print("Output:", response)
             start_date_obj += timedelta(days=1)
-            start_date = start_date_obj.strftime("%d-%m-%Y")
-            print(f"Processing for {start_date}")
-            response = StockScreener().get_buy_calls_v2_performance(start_date, back_in_period)
-            yield response
-        #return response
+        print("Executing Stocks from Selected Stock.")
+        execute_selected_stocks()
+        print("Generating Profit/Loss from Executed Stock.")
+        generate_profit_loss_report()
+        return {"Execution Done. DB Updated."}
     except Exception as e:
         print(e)
 
@@ -346,6 +353,12 @@ def get_all_from_selected_table(offset: int = 0, limit: int = 10):
     return CoreCRUD(SelectedTradeTable).get_all(skip=offset, limit=limit)
 
 
+@app.get("/selected_table/clear_all", tags=["DBSelectedTrade"])
+def clear_all_from_selected_table():
+    """Method to stock details of Selected Trade Table by stock_id."""
+    return CoreCRUD(SelectedTradeTable).clear_entries()
+
+
 @app.get("/executed_table/add_entry", tags=["DBExecutedTrade"])
 def executed_table_add_entry(
     stock_id: str,
@@ -420,6 +433,12 @@ def executed_table_delete_by_id(stock_id: str):
 def get_all_from_executed_table(offset: int = 0, limit: int = 10):
     """Method to stock details of Executed Trade Table by stock_id."""
     return CoreCRUD(ExecutedTradeTable).get_all(skip=offset, limit=limit)
+
+
+@app.get("/executed_table/clear_all", tags=["DBExecutedTrade"])
+def clear_all_from_executed_table():
+    """Method to stock details of Executed Trade Table by stock_id."""
+    return CoreCRUD(ExecutedTradeTable).clear_entries()
 
 
 # Profit Table
@@ -497,6 +516,12 @@ def get_all_from_profit_executed_table(offset: int = 0, limit: int = 10):
     return CoreCRUD(ProfitExecutedTable).get_all(skip=offset, limit=limit)
 
 
+@app.get("/profit_executed/clear_all", tags=["DBProfitExecuted"])
+def clear_all_from_profit_table():
+    """Method to stock details of Profit Executed Trade Table by stock_id."""
+    return CoreCRUD(ProfitExecutedTable).clear_entries()
+
+
 @app.get("/loss_executed/add_entry", tags=["DBLossExecuted"])
 def loss_executed_add_entry(
     stock_id: str,
@@ -509,7 +534,7 @@ def loss_executed_add_entry(
     stock_name: str = "",
 ):
     """Create Entry of loss Executed by stock_id."""
-    trade_date = datetime.now(pytz.timezone("Asia/Kolkata")).strftime("%d-%m-%Y")
+    trade_date = datetime.now(pytz.timezone("Asia/Kolkata"))
     request = PyLossExecutedTable(
         stock_id=stock_id,
         buy_price=buy_price,
@@ -536,7 +561,7 @@ def loss_executed_update_entry(
     stock_name: str = "",
 ):
     """Update Entry of loss Executed by stock_id."""
-    trade_date = datetime.now(pytz.timezone("Asia/Kolkata")).strftime("%d-%m-%Y")
+    trade_date = datetime.now(pytz.timezone("Asia/Kolkata"))
     request = PyLossExecutedTable(
         tock_id=stock_id,
         buy_price=buy_price,
@@ -567,3 +592,9 @@ def executed_loss_delete_by_id(stock_id: str):
 def get_all_from_loss_executed_table(offset: int = 0, limit: int = 10):
     """Method to stock details of loss Executed Table by stock_id."""
     return CoreCRUD(LossExecutedTable).get_all(skip=offset, limit=limit)
+
+
+@app.get("/loss_executed/clear_all", tags=["DBLossExecuted"])
+def clear_all_from_loss_table():
+    """Method to stock details of Loss Executed Trade Table by stock_id."""
+    return CoreCRUD(LossExecutedTable).clear_entries()

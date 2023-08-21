@@ -55,6 +55,12 @@ class CoreCRUD:
         new_entries = [ExecutedTradeTable(**item) for item in items]
         self.db.add_all(new_entries)
         self.db.commit()
+
+
+    def clear_entries(self):
+        """Method to Clear Multiple Entries."""
+        self.db.query(self.model).delete()
+        self.db.commit()
         
 
     def get_by_stock_id(self, stock_id: str):

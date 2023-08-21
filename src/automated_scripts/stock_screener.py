@@ -519,6 +519,7 @@ class StockScreener:
     
     def get_buy_calls_v2_performance(self, end_date, back_in_period):
         """Helper method to extract stocks from the pool."""
+        print("Executing...")
         stock_list = StockDetails().get_stock_list()
 
         start_time = time.time()
