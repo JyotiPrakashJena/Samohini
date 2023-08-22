@@ -14,7 +14,7 @@ import time
 def execute_selected_stocks():
     """Fetch the Selected Stocks for Execution."""
     try:
-        selected_stocks = main.get_all_from_selected_table(offset=0, limit=50)
+        selected_stocks = main.get_all_from_selected_table(offset=0, limit=1000)
         if 'message' in selected_stocks:
             return {"Nothing to Trade."}
         EXECUTED_ENTRIES = []
@@ -75,7 +75,7 @@ def execute_selected_stocks():
 def generate_profit_loss_report():
     """Method to generate Insights of Profit/Loss from the Execution Table."""
     try:
-        executed_stocks = main.get_all_from_executed_table(offset=0, limit=50)
+        executed_stocks = main.get_all_from_executed_table(offset=0, limit=1000)
         if 'message' in executed_stocks:
             return {"Nothing to generate report."}
         for executed_stock in executed_stocks:
