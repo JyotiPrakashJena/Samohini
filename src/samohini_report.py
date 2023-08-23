@@ -19,16 +19,12 @@ def execute_selected_stocks():
             return {"Nothing to Trade."}
         EXECUTED_ENTRIES = []
         for selected_stock in selected_stocks:
-            print(selected_stock)
             stock_id = value_from_dict(selected_stock, "stock_id")
             try:
                 stock_current_mkt_price = main.get_stock_details(stock_id)  # For Period=1day
                 buy_price = format_float(value_from_dict(selected_stock, "buy_price"))
-                print(buy_price)
                 current_price = format_float(value_from_list(stock_current_mkt_price, "close"))
-                print(current_price)
                 stoploss=format_float(value_from_dict(selected_stock, "stoploss"))
-                print(stoploss)
                 executed_dict=None
                 if current_price > buy_price:
                     profit_till_now = format_float(current_price - buy_price)
@@ -114,3 +110,9 @@ def generate_profit_loss_report():
         print("Profit/Loss Report Generated.")
     except Exception as e:
         print("Exception:", e)
+
+print("Executing Stocks from Selected Stock.")
+execute_selected_stocks()
+print("Generating Profit/Loss from Executed Stock.")
+generate_profit_loss_report()
+print("Execution Done. DB Updated.")

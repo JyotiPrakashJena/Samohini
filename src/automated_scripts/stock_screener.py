@@ -284,7 +284,7 @@ class StockScreener:
         """Helper function to validate if the candle_stick pattern satisfied."""
         bull_candles = vars(request.bullish_candles)
         bull_candles_true = sum(value == True for value in bull_candles.values())
-        return True if bull_candles_true else False
+        return True if bull_candles_true>0 else False
 
     def is_indicator_stock_validated(self, request: response_indicator_module) -> bool:
         """Helper function to validate if the indicator satisfied."""
@@ -292,7 +292,7 @@ class StockScreener:
         indicator_response_true = sum(
             value == True for value in indicator_response.values()
         )
-        return True if indicator_response_true else False
+        return True if indicator_response_true>0 else False
 
     def are_approximately_close(self, num1, num2, percent_threshold=2):
         """Method to validate if the provided numbers are close by a given threshold %"""
