@@ -40,8 +40,17 @@ class StockDetails:
     def get_stock_list(self) -> pd.DataFrame:
         """Helper function to get the list of stocks trading under NSE."""
         stock_data = pd.read_csv(
-            "/Users/ujejyoti/Documents/PrakashSpace/Samohini/src/module_stock/static_files/EQUITY_L.csv"
+            "/Users/ujejyoti/Documents/PrakashSpace/Samohini/src/module_stock/static_files/Nifty500.csv"
         )
+        stock_data.columns = [
+            "Name",
+            "Industry",
+            "Symbol",
+            "Series",
+            "ISIN"
+        ]
+        #For All Stocks
+        """
         stock_data.columns = [
             "Symbol",
             "Name",
@@ -52,6 +61,7 @@ class StockDetails:
             "ISIN",
             "Face_Value",
         ]
+        """
         return stock_data
 
     def get_stock_data_by_start_end_date(

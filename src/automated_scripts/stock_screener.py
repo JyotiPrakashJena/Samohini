@@ -478,7 +478,7 @@ class StockScreener:
                     stock_id=row["Symbol"], stock_name=row["Name"]
                 )
                 futures.append(
-                    executor.submit(self.get_all_screener_details, request_screener)
+                    executor.submit(self.is_stock_valid, request_screener)
                 )
 
             results = []
