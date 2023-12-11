@@ -10,7 +10,9 @@ DB_PASSWORD = os.environ.get("DB_PASSWORD")
 DB_INSTANCE = os.environ.get("DB_INSTANCE")
 DB_NAME = os.environ.get("DB_NAME")
 DB_PORT = os.environ.get("DB_PORT")
-SQLALCHEMY_DATABASE_URL = f"postgresql://{DB_USERNAME}:{DB_PASSWORD}@{DB_INSTANCE}/{DB_NAME}"
+SQLALCHEMY_DATABASE_URL = (
+    f"postgresql://{DB_USERNAME}:{DB_PASSWORD}@{DB_INSTANCE}/{DB_NAME}"
+)
 
 
 engine = create_engine(SQLALCHEMY_DATABASE_URL)
