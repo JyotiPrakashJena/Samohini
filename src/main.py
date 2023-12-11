@@ -44,7 +44,6 @@ from utils.risk_reward import validate_risk_reward
 from samohini_report import generate_profit_loss_report, execute_selected_stocks
 
 
-
 tags_metadata = [
     {
         "name": "StockDetails",
@@ -78,8 +77,6 @@ tags_metadata = [
         "name": "Welcome",
         "description": "Welcome!",
     },
-    
-
 ]
 
 app = FastAPI(
@@ -111,16 +108,16 @@ def get_fibo_levels(
     return fibo_response
 
 
-@app.get("/get_bullish_candles", tags=["StockScreeners"])
-def get_bullish_candles(
-    stock_id: str, stock_name: str = "", period: int = 1, time_frame: str = "y"
-) -> response_candle_module:
-    """Method to validate the bullish candlestick of a given stock."""
-    request = request_candle_module(
-        stock_id=stock_id, stock_name=stock_name, period=period, time_frame=time_frame
-    )
-    candlestick_response = BullCandleStick().get_candle_bull_response(request=request)
-    return candlestick_response
+# @app.get("/get_bullish_candles", tags=["StockScreeners"])
+# def get_bullish_candles(
+#     stock_id: str, stock_name: str = "", period: int = 1, time_frame: str = "y"
+# ) -> response_candle_module:
+#     """Method to validate the bullish candlestick of a given stock."""
+#     request = request_candle_module(
+#         stock_id=stock_id, stock_name=stock_name, period=period, time_frame=time_frame
+#     )
+#     candlestick_response = BullCandleStick().get_candle_bull_response(request=request)
+#     return candlestick_response
 
 
 @app.get("/get_bullish_indicators", tags=["StockScreeners"])
@@ -190,13 +187,13 @@ def get_all_screener_details(
     return get_all_screener_details_response
 
 
-@app.get("/get_recommended_stocks", tags=["StockScreeners"])
-def get_all_recommended_stocks() -> object:
-    try:
-        response = StockScreener().recommended_stocks()
-        return response
-    except Exception as e:
-        print(e)
+# @app.get("/get_recommended_stocks", tags=["StockScreeners"])
+# def get_all_recommended_stocks() -> object:
+#     try:
+#         response = StockScreener().recommended_stocks()
+#         return response
+#     except Exception as e:
+#         print(e)
 
 
 @app.get("/get_buy_calls", tags=["StockScreeners"])
@@ -207,23 +204,35 @@ def get_bullish_buy_calls() -> object:
     except Exception as e:
         print(e)
 
+
 from datetime import timedelta
+
 ist_timezone = pytz.timezone("Asia/Kolkata")
+
+
 @app.get("/validate_performance_buy_calls", tags=["Performance Testing"])
-def get_bullish_buy_calls(start_date:str, back_in_period: int, end_date: str=datetime.now(ist_timezone).strftime("%d-%m-%Y")):
-    #end_date is the date from which recommendations with start. 
-    #back_in_period is the no of days data will be fetched like 1y/2y
+def get_bullish_buy_calls(
+    start_date: str,
+    back_in_period: int,
+    end_date: str = datetime.now(ist_timezone).strftime("%d-%m-%Y"),
+):
+    # end_date is the date from which recommendations with start.
+    # back_in_period is the no of days data will be fetched like 1y/2y
     try:
         end_date_obj = datetime.strptime(end_date, "%d-%m-%Y")
         start_date_obj = datetime.strptime(start_date, "%d-%m-%Y")
         if start_date_obj > end_date_obj:
-            return {'Exception':f'Starting Date {start_date} should be before Ending Date {end_date}'}
+            return {
+                "Exception": f"Starting Date {start_date} should be before Ending Date {end_date}"
+            }
         responses = []
-        while start_date_obj<end_date_obj:
+        while start_date_obj < end_date_obj:
             if start_date_obj.weekday() < 5:
                 start_date = start_date_obj.strftime("%d-%m-%Y")
                 print(f"Processing for {start_date}")
-                response = StockScreener().get_buy_calls_v2_performance(start_date, back_in_period)
+                response = StockScreener().get_buy_calls_v2_performance(
+                    start_date, back_in_period
+                )
                 yield response
                 print("Output:", response)
             start_date_obj += timedelta(days=1)
@@ -455,7 +464,7 @@ def profit_executed_add_entry(
 ):
     """Create Entry of Profit Executed by stock_id."""
     trade_date = datetime.now(pytz.timezone("Asia/Kolkata")).strftime("%d-%m-%Y")
-    trade_date_obj = datetime.strptime(trade_date,'%d-%m-%Y')
+    trade_date_obj = datetime.strptime(trade_date, "%d-%m-%Y")
     request = PyProfitExecutedTable(
         stock_id=stock_id,
         buy_price=buy_price,
@@ -483,7 +492,7 @@ def profit_executed_update_entry(
 ):
     """Update Entry of Profit Executed by stock_id."""
     trade_date = datetime.now(pytz.timezone("Asia/Kolkata")).strftime("%d-%m-%Y")
-    trade_date_obj = datetime.strptime(trade_date,'%d-%m-%Y')
+    trade_date_obj = datetime.strptime(trade_date, "%d-%m-%Y")
     request = PyProfitExecutedTable(
         stock_id=stock_id,
         buy_price=buy_price,

@@ -44,10 +44,14 @@ from utils.broadcast import broadcast_msg
 class StockScreener:
     """Class with methods to screen stocks from the pool."""
 
-    def is_stock_valid_v2_performance(self, end_date, back_in_period, request: request_all_screener_details):
+    def is_stock_valid_v2_performance(
+        self, end_date, back_in_period, request: request_all_screener_details
+    ):
         """Helper function to validate if a stock is valid."""
         try:
-            all_screener_response = self.get_all_screener_details_v2_performance(end_date, back_in_period,request)
+            all_screener_response = self.get_all_screener_details_v2_performance(
+                end_date, back_in_period, request
+            )
             candle_check = self.is_candle_stick_validated(
                 all_screener_response.candle_stick_response
             )
@@ -136,7 +140,7 @@ class StockScreener:
                 )
                 return buy_call_response
         except Exception as e:
-            print(f'Error: {e}')
+            print(f"Error: {e}")
 
     def handler_bull_candle_response(
         self, request: request_all_screener_details
@@ -242,21 +246,20 @@ class StockScreener:
         except Exception as e:
             print(f"Exception: {e}")
 
-
     def get_all_screener_details_v2_performance(
         self, end_date, back_in_period, request: request_all_screener_details
     ) -> response_all_screener_details:
         """Validate if a stock passes all the checks for performance validation."""
         # print("Validate if a stock passes all the checks for performance validation")
         try:
-            #print(request)
+            # print(request)
             stock_data = StockDetails().get_stock_data_by_period(
                 request_stock_data_by_period(
                     stock_id=request.stock_id,
                     period=request.period,
-                    time_frame='d',
+                    time_frame="d",
                     back_in_period=back_in_period,
-                    end_date=end_date
+                    end_date=end_date,
                 )
             )
             request.stock_data = stock_data
@@ -279,12 +282,11 @@ class StockScreener:
         except Exception as e:
             print(f"Exception: {e}")
 
-
     def is_candle_stick_validated(self, request: response_candle_module) -> bool:
         """Helper function to validate if the candle_stick pattern satisfied."""
         bull_candles = vars(request.bullish_candles)
         bull_candles_true = sum(value == True for value in bull_candles.values())
-        return True if bull_candles_true>0 else False
+        return True if bull_candles_true > 0 else False
 
     def is_indicator_stock_validated(self, request: response_indicator_module) -> bool:
         """Helper function to validate if the indicator satisfied."""
@@ -292,7 +294,7 @@ class StockScreener:
         indicator_response_true = sum(
             value == True for value in indicator_response.values()
         )
-        return True if indicator_response_true>0 else False
+        return True if indicator_response_true > 0 else False
 
     def are_approximately_close(self, num1, num2, percent_threshold=2):
         """Method to validate if the provided numbers are close by a given threshold %"""
@@ -477,9 +479,7 @@ class StockScreener:
                 request_screener = request_all_screener_details(
                     stock_id=row["Symbol"], stock_name=row["Name"]
                 )
-                futures.append(
-                    executor.submit(self.is_stock_valid, request_screener)
-                )
+                futures.append(executor.submit(self.is_stock_valid, request_screener))
 
             results = []
             for i, future in enumerate(concurrent.futures.as_completed(futures)):
@@ -516,7 +516,6 @@ class StockScreener:
             print(f"Total Time Consumed: {time.time()-start_time}")
             print(f"Total Buy Calls...{counter}")
 
-    
     def get_buy_calls_v2_performance(self, end_date, back_in_period):
         """Helper method to extract stocks from the pool."""
         print("Executing...")
@@ -529,7 +528,14 @@ class StockScreener:
                 request_screener = request_all_screener_details(
                     stock_id=row["Symbol"], stock_name=row["Name"]
                 )
-                futures.append(executor.submit(self.is_stock_valid_v2_performance, end_date, back_in_period, request_screener))
+                futures.append(
+                    executor.submit(
+                        self.is_stock_valid_v2_performance,
+                        end_date,
+                        back_in_period,
+                        request_screener,
+                    )
+                )
 
             # results = []
             counter = 0

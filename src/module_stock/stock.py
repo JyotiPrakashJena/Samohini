@@ -42,14 +42,8 @@ class StockDetails:
         stock_data = pd.read_csv(
             "/Users/ujejyoti/Documents/PrakashSpace/Samohini/src/module_stock/static_files/Nifty500.csv"
         )
-        stock_data.columns = [
-            "Name",
-            "Industry",
-            "Symbol",
-            "Series",
-            "ISIN"
-        ]
-        #For All Stocks
+        stock_data.columns = ["Name", "Industry", "Symbol", "Series", "ISIN"]
+        # For All Stocks
         """
         stock_data.columns = [
             "Symbol",
@@ -118,7 +112,7 @@ class StockDetails:
             start_date=start_date,
             end_date=end_date,
             period=request.period,
-            time_frame=request.time_frame
+            time_frame=request.time_frame,
         )
         stock_data = self.get_stock_data_by_start_end_date(request_stock_data_by_date)
         return stock_data
